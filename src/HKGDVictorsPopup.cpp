@@ -580,7 +580,7 @@ HKGDPlayerStatsPopup* HKGDPlayerStatsPopup::create(const std::string& username, 
 }
 
 void HKGDPlayerStatsPopup::createUI() {
-    HKGDManager::get()->fetchPlayerRecords(m_username, [this](std::vector<HKGDRecord> records) {
+    HKGDManager::get()->fetchPlayerRecordsWithMapping(m_username, [this](std::vector<HKGDRecord> records) {
         this->onLoadingFinished(records);
     });
 }
@@ -603,6 +603,17 @@ void HKGDPlayerStatsPopup::onLoadingFinished(std::vector<HKGDRecord> records) {
         noRecords->setScale(0.45f);
         noRecords->setAlignment(kCCTextAlignmentCenter);
         m_mainLayer->addChild(noRecords);
+        
+        // Add info about name mapping
+        auto mappingInfo = CCLabelBMFont::create(
+            "Note: If this isn't your account,\nuse the admin panel to map names.",
+            "chatFont.fnt"
+        );
+        mappingInfo->setPosition({m_size.width / 2, m_size.height / 2 - 40.f});
+        mappingInfo->setScale(0.4f);
+        mappingInfo->setAlignment(kCCTextAlignmentCenter);
+        mappingInfo->setColor({150, 150, 150});
+        m_mainLayer->addChild(mappingInfo);
         return;
     }
     

@@ -199,7 +199,7 @@ class $modify(HKGDProfilePage, ProfilePage) {
     }
     
     void onHKGDStats(CCObject* sender) {
-        // Show player stats popup
+        // Show player stats popup with name mapping
         auto popup = HKGDPlayerStatsPopup::create(m_fields->hkgdStatsText, m_fields->hkgdAccountId);
         if (popup) {
             popup->createUI();

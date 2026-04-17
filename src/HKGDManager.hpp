@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cctype>
 #include <Geode/Geode.hpp>
 #include <Geode/loader/Mod.hpp>
 #include <Geode/utils/web.hpp>
@@ -59,6 +60,12 @@ public:
     
     // Fetch player's beaten extreme demons
     void fetchPlayerRecords(std::string username, std::function<void(std::vector<HKGDRecord>)> callback);
+    
+    // Fetch player records with name mapping
+    void fetchPlayerRecordsWithMapping(std::string gameName, std::function<void(std::vector<HKGDRecord>)> callback);
+    
+    // Get mapped database name for a game name
+    void getMappedPlayerName(std::string gameName, std::function<void(std::string)> callback);
     
     // Check if level is an extreme demon classic
     bool isExtremeClassicDemon(GJGameLevel* level);

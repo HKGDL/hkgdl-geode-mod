@@ -317,6 +317,50 @@ void HKGDManager::fetchAllLevels(std::function<void(std::vector<HKGDLevelInfo>)>
     );
 }
 
+void HKGDManager::getMappedPlayerName(std::string gameName, std::function<void(std::string)> callback) {
+    auto url = fmt::format("{}/player-mapping?gameName={}", getApiUrl(), gameName);
+    
+    geode::async::spawn(
+        web::WebRequest().get(url),
+        [callback, gameName](web::WebResponse const& response) {
+            if (!response.ok()) {
+                callback(gameName); // Fallback to original name
+                return;
+            }
+            
+            auto jsonResult = response.json();
+            if (jsonResult.isErr()) {
+                callback(gameName); // Fallback to original name
+                return;
+            }
+            
+            auto& json = jsonResult.unwrap();
+            
+            try {
+                if (json.contains("dbName") && json["dbName"].isString()) {
+                    auto dbNameResult = json["dbName"].asString();
+                    if (dbNameResult.isOk()) {
+                        callback(dbNameResult.unwrap());
+                        return;
+                    }
+                }
+            } catch (...) {
+                // Fallback to original name
+            }
+            
+            callback(gameName);
+        }
+    );
+}
+
+void HKGDManager::fetchPlayerRecordsWithMapping(std::string gameName, std::function<void(std::vector<HKGDRecord>)> callback) {
+    // First check for name mapping
+    getMappedPlayerName(gameName, [this, callback](std::string dbName) {
+        // Use the mapped name to fetch records
+        fetchPlayerRecords(dbName, callback);
+    });
+}
+
 void HKGDManager::fetchPlayerRecords(std::string username, std::function<void(std::vector<HKGDRecord>)> callback) {
     // Since there's no /player endpoint, we fetch all levels and search for the player in records
     auto url = fmt::format("{}/levels", getApiUrl());
