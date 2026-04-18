@@ -70,6 +70,16 @@ public:
     // Check if level is an extreme demon classic
     bool isExtremeClassicDemon(GJGameLevel* level);
     
+    // Check if level is a platformer extreme demon
+    bool isPlatformerExtremeDemon(GJGameLevel* level);
+    
+    // Check if level is ANY platformer level (not just extreme)
+    bool isPlatformerLevel(GJGameLevel* level);
+    
+    // Submit a platformer record to HKGDL
+    void submitPlatformerRecord(int levelId, std::string levelName, std::string username, int attempts, std::string videoUrl,
+                                std::string fps, std::string date, std::function<void(HKGDSubmissionResult)> callback);
+
 private:
     static HKGDManager* s_instance;
     std::string m_apiUrl;

@@ -4,18 +4,20 @@
 
 // HKGDVictorsPopup implementation
 
-bool HKGDVictorsPopup::init(int levelId, const std::string& levelName, int position) {
+bool HKGDVictorsPopup::init(int levelId, const std::string& levelName, int position, bool isPlatformer) {
     m_levelId = levelId;
     m_levelName = levelName;
     m_position = position;
+    m_isPlatformer = isPlatformer;
     
     return geode::Popup::init(400.f, 300.f);
 }
 
-HKGDVictorsPopup* HKGDVictorsPopup::create(int levelId, const std::string& levelName, int position, bool isOnHKGDL) {
+HKGDVictorsPopup* HKGDVictorsPopup::create(int levelId, const std::string& levelName, int position, bool isOnHKGDL, bool isPlatformer) {
     auto ret = new HKGDVictorsPopup();
     ret->m_isOnHKGDL = isOnHKGDL;
-    if (ret->init(levelId, levelName, position)) {
+    ret->m_isPlatformer = isPlatformer;
+    if (ret->init(levelId, levelName, position, isPlatformer)) {
         ret->autorelease();
         return ret;
     }
@@ -67,7 +69,7 @@ void HKGDVictorsPopup::createUI() {
 }
 
 void HKGDVictorsPopup::onSubmitRecord(CCObject* sender) {
-    auto popup = HKGDSubmitPopup::create(m_levelId, m_levelName);
+    auto popup = HKGDSubmitPopup::create(m_levelId, m_levelName, m_isPlatformer);
     if (popup) {
         popup->show();
     }
@@ -231,15 +233,21 @@ void HKGDVictorsPopup::onVideoButton(CCObject* sender) {
 
 // HKGDSubmitPopup implementation
 
-bool HKGDSubmitPopup::init(int levelId, const std::string& levelName) {
+bool HKGDSubmitPopup::init(int levelId, const std::string& levelName, bool isPlatformer) {
     m_levelId = levelId;
     m_levelName = levelName;
+    m_isPlatformer = isPlatformer;
     
     if (!geode::Popup::init(350.f, 280.f)) {
         return false;
     }
     
-    setTitle(fmt::format("Submit Record - {}", m_levelName).c_str());
+    // Update title to indicate platformer if needed
+    std::string title = fmt::format("Submit Record - {}", m_levelName);
+    if (isPlatformer) {
+        title += " (Platformer)";
+    }
+    setTitle(title.c_str());
     
     float startY = m_size.height - 60.f;
     float spacing = 40.f;
@@ -312,9 +320,9 @@ bool HKGDSubmitPopup::init(int levelId, const std::string& levelName) {
     return true;
 }
 
-HKGDSubmitPopup* HKGDSubmitPopup::create(int levelId, const std::string& levelName) {
+HKGDSubmitPopup* HKGDSubmitPopup::create(int levelId, const std::string& levelName, bool isPlatformer) {
     auto ret = new HKGDSubmitPopup();
-    if (ret->init(levelId, levelName)) {
+    if (ret->init(levelId, levelName, isPlatformer)) {
         ret->autorelease();
         return ret;
     }
@@ -363,25 +371,38 @@ void HKGDSubmitPopup::onSubmit(CCObject* sender) {
     m_loadingCircle->setVisible(true);
     m_mainLayer->addChild(m_loadingCircle);
     
-    // Submit to API
-    HKGDManager::get()->submitRecord(m_levelId, m_levelName, username, attempts, videoUrl, fps, date, 
-        [this](HKGDSubmissionResult result) {
-            // Hide loading
-            if (m_loadingCircle) {
-                m_loadingCircle->setVisible(false);
-                m_loadingCircle->removeFromParent();
-                m_loadingCircle = nullptr;
+    // Submit to API - use platformer method if it's a platformer level
+    if (m_isPlatformer) {
+        HKGDManager::get()->submitPlatformerRecord(m_levelId, m_levelName, username, attempts, videoUrl, fps, date, 
+            [this](HKGDSubmissionResult result) {
+                this->handleSubmitResult(result);
             }
-            
-            if (result.success) {
-                Notification::create(result.message, NotificationIcon::Success, 3.f)->show();
-                // Close popup
-                this->onClose(nullptr);
-            } else {
-                Notification::create(result.message, NotificationIcon::Error, 3.f)->show();
+        );
+    } else {
+        // Classic demon submission
+        HKGDManager::get()->submitRecord(m_levelId, m_levelName, username, attempts, videoUrl, fps, date, 
+            [this](HKGDSubmissionResult result) {
+                this->handleSubmitResult(result);
             }
-        }
-    );
+        );
+    }
+}
+
+void HKGDSubmitPopup::handleSubmitResult(HKGDSubmissionResult result) {
+    // Hide loading
+    if (m_loadingCircle) {
+        m_loadingCircle->setVisible(false);
+        m_loadingCircle->removeFromParent();
+        m_loadingCircle = nullptr;
+    }
+    
+    if (result.success) {
+        Notification::create(result.message, NotificationIcon::Success, 3.f)->show();
+        // Close popup
+        this->onClose(nullptr);
+    } else {
+        Notification::create(result.message, NotificationIcon::Error, 3.f)->show();
+    }
 }
 
 void HKGDSubmitPopup::onSubmitComplete(HKGDSubmissionResult result) {

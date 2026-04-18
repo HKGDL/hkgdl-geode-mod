@@ -18,8 +18,9 @@ protected:
     ScrollLayer* m_scrollView = nullptr;
     LoadingCircle* m_loadingCircle = nullptr;
     bool m_isOnHKGDL = false;
+    bool m_isPlatformer = false;
     
-    bool init(int levelId, const std::string& levelName, int position);
+    bool init(int levelId, const std::string& levelName, int position, bool isPlatformer = false);
     void createVictorsList();
     CCNode* createVictorCell(HKGDRecord const& record, int index);
     void onLoadingFinished(std::vector<HKGDRecord> records);
@@ -27,7 +28,7 @@ protected:
     void onVideoButton(CCObject* sender);
     
 public:
-    static HKGDVictorsPopup* create(int levelId, const std::string& levelName, int position, bool isOnHKGDL = true);
+    static HKGDVictorsPopup* create(int levelId, const std::string& levelName, int position, bool isOnHKGDL = true, bool isPlatformer = false);
     void createUI();
 };
 
@@ -35,18 +36,20 @@ class HKGDSubmitPopup : public geode::Popup {
 protected:
     int m_levelId;
     std::string m_levelName;
+    bool m_isPlatformer = false;
     TextInput* m_usernameInput = nullptr;
     TextInput* m_attemptsInput = nullptr;
     TextInput* m_videoUrlInput = nullptr;
     TextInput* m_fpsInput = nullptr;
     LoadingCircle* m_loadingCircle = nullptr;
     
-    bool init(int levelId, const std::string& levelName);
+    bool init(int levelId, const std::string& levelName, bool isPlatformer = false);
     void onSubmit(CCObject* sender);
     void onSubmitComplete(HKGDSubmissionResult result);
+    void handleSubmitResult(HKGDSubmissionResult result);
     
 public:
-    static HKGDSubmitPopup* create(int levelId, const std::string& levelName);
+    static HKGDSubmitPopup* create(int levelId, const std::string& levelName, bool isPlatformer = false);
 };
 
 class HKGDListPopup : public geode::Popup {

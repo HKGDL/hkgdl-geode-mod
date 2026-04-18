@@ -49,6 +49,36 @@ bool HKGDManager::isExtremeClassicDemon(GJGameLevel* level) {
     return true;
 }
 
+bool HKGDManager::isPlatformerExtremeDemon(GJGameLevel* level) {
+    if (!level) return false;
+    
+    // Check if it's a demon
+    if (!level->m_demon) return false;
+    
+    // Check if demon difficulty is Extreme (6) - only extreme demons
+    if (level->m_demonDifficulty != 6) return false;
+    
+    // Check if it's a platformer - platformer levels have m_levelLength = 5
+    // Also check isPlatformer() method
+    if (!level->isPlatformer() && level->m_levelLength != 5) return false;
+    
+    return true;
+}
+
+// Detect platformer DEMONS only (not all platformer levels)
+bool HKGDManager::isPlatformerLevel(GJGameLevel* level) {
+    if (!level) return false;
+    
+    // Check if it's a demon
+    if (!level->m_demon) return false;
+    
+    // Check if it's a platformer - platformer levels have m_levelLength = 5
+    // Also check isPlatformer() method
+    if (!level->isPlatformer() && level->m_levelLength != 5) return false;
+    
+    return true;
+}
+
 void HKGDManager::checkLevelOnHKGDL(int levelId, std::function<void(bool, int)> callback) {
     auto url = fmt::format("{}/levels", getApiUrl());
     
@@ -208,11 +238,12 @@ void HKGDManager::submitRecord(int levelId, std::string levelName, std::string u
         {"id", submissionId},
         {"levelId", std::to_string(levelId)},
         {"levelName", levelName},
-        {"isNewLevel", false},
+        {"isNewLevel", false},  // Admin will decide difficulty placement for new levels
         {"submittedAt", date},
         {"submittedBy", username},
         {"status", std::string("pending")},
-        {"record_data", recordData}
+        {"record_data", recordData},
+        {"adminDecidesDifficulty", true}  // Admin will decide where this goes
     });
     
     auto request = web::WebRequest();
@@ -253,6 +284,86 @@ void HKGDManager::submitRecord(int levelId, std::string levelName, std::string u
                 } else {
                     result.success = true;
                     result.message = "Record submitted for approval!";
+                }
+            } catch (...) {
+                result.success = false;
+                result.message = "Error parsing response";
+            }
+            
+            callback(result);
+        }
+    );
+}
+
+void HKGDManager::submitPlatformerRecord(int levelId, std::string levelName, std::string username, int attempts, std::string videoUrl,
+                                        std::string fps, std::string date, std::function<void(HKGDSubmissionResult)> callback) {
+    auto url = fmt::format("{}/platformer-submissions", getApiUrl());
+    
+    // Generate a unique ID
+    auto now = std::chrono::system_clock::now();
+    auto timestamp = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()).count();
+    std::string submissionId = fmt::format("platformer-pending-{}-{}", timestamp, std::rand() % 1000000);
+    
+    // Create record data as a JSON string
+    std::string attemptsStr = attempts > 0 ? std::to_string(attempts) : "null";
+    std::string fpsVal = fps.empty() ? "null" : "\"" + fps + "\"";
+    std::string recordData = fmt::format(
+        "{{\"player\":\"{}\",\"date\":\"{}\",\"videoUrl\":\"{}\",\"fps\":{},\"attempts\":{}}}",
+        username, date, videoUrl, fpsVal, attemptsStr
+    );
+    
+    // Create JSON body with all required fields
+    auto body = matjson::makeObject({
+        {"id", submissionId},
+        {"levelId", std::to_string(levelId)},
+        {"levelName", levelName},
+        {"isNewLevel", false},  // Admin will decide difficulty placement for new levels
+        {"submittedAt", date},
+        {"submittedBy", username},
+        {"status", std::string("pending")},
+        {"record_data", recordData},
+        {"isPlatformer", true},  // Mark as platformer submission
+        {"adminDecidesDifficulty", true}  // Admin will decide where this goes
+    });
+    
+    auto request = web::WebRequest();
+    request.bodyJSON(body);
+    
+    geode::async::spawn(
+        request.post(url),
+        [callback](web::WebResponse const& response) {
+            HKGDSubmissionResult result;
+            
+            if (!response.ok()) {
+                result.success = false;
+                result.message = fmt::format("Server error: {}", static_cast<int>(response.code()));
+                callback(result);
+                return;
+            }
+            
+            auto jsonResult = response.json();
+            if (jsonResult.isErr()) {
+                result.success = false;
+                result.message = "Invalid server response";
+                callback(result);
+                return;
+            }
+            
+            auto& json = jsonResult.unwrap();
+            
+            try {
+                // Check for success or error in response
+                if (json.contains("error")) {
+                    auto errorResult = json["error"].asString();
+                    result.success = false;
+                    result.message = errorResult.isOk() ? errorResult.unwrap() : "Unknown error";
+                } else if (json.contains("success")) {
+                    auto successResult = json["success"].asBool();
+                    result.success = successResult.isOk() ? successResult.unwrap() : false;
+                    result.message = "Platformer record submitted for approval!";
+                } else {
+                    result.success = true;
+                    result.message = "Platformer record submitted for approval!";
                 }
             } catch (...) {
                 result.success = false;

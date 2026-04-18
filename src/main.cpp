@@ -19,6 +19,7 @@ class $modify(HKGDLevelInfoLayer, LevelInfoLayer) {
         bool hasCheckedHKGDL = false;
         bool isOnHKGDL = false;
         bool isExtremeClassic = false;
+        bool isPlatformerExtreme = false;
     };
     
     bool init(GJGameLevel* level, bool challenge) {
@@ -29,8 +30,11 @@ class $modify(HKGDLevelInfoLayer, LevelInfoLayer) {
         // Check if this is an extreme classic demon
         m_fields->isExtremeClassic = HKGDManager::get()->isExtremeClassicDemon(level);
         
-        if (m_fields->isExtremeClassic) {
-            // Create the HKGD button immediately for extreme classic demons
+        // Check if this is ANY platformer level (not just extreme)
+        m_fields->isPlatformerExtreme = HKGDManager::get()->isPlatformerLevel(level);
+        
+        if (m_fields->isExtremeClassic || m_fields->isPlatformerExtreme) {
+            // Create the HKGD button for extreme classic demons OR any platformer levels
             createHKGDButton();
             
             // Also check if it's on HKGDL to show position
@@ -117,7 +121,8 @@ class $modify(HKGDLevelInfoLayer, LevelInfoLayer) {
             level->m_levelID.value(),
             level->m_levelName,
             m_fields->hkgdPosition,
-            m_fields->isOnHKGDL
+            m_fields->isOnHKGDL,
+            m_fields->isPlatformerExtreme
         );
         
         if (popup) {
