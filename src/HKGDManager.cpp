@@ -210,8 +210,8 @@ void HKGDManager::fetchVictors(int levelId, bool isPlatformer, std::function<voi
     );
 }
 
-void HKGDManager::fetchLevelInfo(int levelId, std::function<void(HKGDLevelInfo)> callback) {
-    fetchVictors(levelId, [callback, levelId](std::vector<HKGDRecord> records) {
+void HKGDManager::fetchLevelInfo(int levelId, bool isPlatformer, std::function<void(HKGDLevelInfo)> callback) {
+    fetchVictors(levelId, isPlatformer, [callback, levelId](std::vector<HKGDRecord> records) {
         HKGDLevelInfo info;
         info.levelId = levelId;
         info.records = records;

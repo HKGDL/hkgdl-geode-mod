@@ -43,7 +43,7 @@ public:
     std::string getWebsiteUrl();
     
     // Fetch level info from HKGDL API
-    void fetchLevelInfo(int levelId, std::function<void(HKGDLevelInfo)> callback);
+    void fetchLevelInfo(int levelId, bool isPlatformer, std::function<void(HKGDLevelInfo)> callback);
     
     // Check if a level is on HKGDL
     void checkLevelOnHKGDL(int levelId, bool isPlatformer, std::function<void(bool, int)> callback);
