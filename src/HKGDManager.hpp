@@ -46,10 +46,10 @@ public:
     void fetchLevelInfo(int levelId, std::function<void(HKGDLevelInfo)> callback);
     
     // Check if a level is on HKGDL
-    void checkLevelOnHKGDL(int levelId, std::function<void(bool, int)> callback);
+    void checkLevelOnHKGDL(int levelId, bool isPlatformer, std::function<void(bool, int)> callback);
     
     // Fetch victors for a level
-    void fetchVictors(int levelId, std::function<void(std::vector<HKGDRecord>)> callback);
+    void fetchVictors(int levelId, bool isPlatformer, std::function<void(std::vector<HKGDRecord>)> callback);
     
     // Submit a record to HKGDL
     void submitRecord(int levelId, std::string levelName, std::string username, int attempts, std::string videoUrl, 

@@ -79,8 +79,10 @@ bool HKGDManager::isPlatformerLevel(GJGameLevel* level) {
     return true;
 }
 
-void HKGDManager::checkLevelOnHKGDL(int levelId, std::function<void(bool, int)> callback) {
-    auto url = fmt::format("{}/levels", getApiUrl());
+void HKGDManager::checkLevelOnHKGDL(int levelId, bool isPlatformer, std::function<void(bool, int)> callback) {
+    // Use platformer endpoint for platformer levels, classic endpoint for others
+    auto endpoint = isPlatformer ? "/platformer-levels" : "/levels";
+    auto url = fmt::format("{}{}", getApiUrl(), endpoint);
     
     geode::async::spawn(
         web::WebRequest().get(url),
@@ -125,8 +127,10 @@ void HKGDManager::checkLevelOnHKGDL(int levelId, std::function<void(bool, int)> 
     );
 }
 
-void HKGDManager::fetchVictors(int levelId, std::function<void(std::vector<HKGDRecord>)> callback) {
-    auto url = fmt::format("{}/levels", getApiUrl());
+void HKGDManager::fetchVictors(int levelId, bool isPlatformer, std::function<void(std::vector<HKGDRecord>)> callback) {
+    // Use platformer endpoint for platformer levels
+    auto endpoint = isPlatformer ? "/platformer-levels" : "/levels";
+    auto url = fmt::format("{}{}", getApiUrl(), endpoint);
     
     geode::async::spawn(
         web::WebRequest().get(url),

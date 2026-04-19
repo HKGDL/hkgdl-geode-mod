@@ -60,7 +60,7 @@ void HKGDVictorsPopup::createUI() {
     
     // Start loading victors if on HKGDL
     if (m_isOnHKGDL) {
-        HKGDManager::get()->fetchVictors(m_levelId, [this](std::vector<HKGDRecord> records) {
+        HKGDManager::get()->fetchVictors(m_levelId, m_isPlatformer, [this](std::vector<HKGDRecord> records) {
             this->onLoadingFinished(records);
         });
     } else {

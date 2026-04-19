@@ -39,7 +39,8 @@ class $modify(HKGDLevelInfoLayer, LevelInfoLayer) {
             
             // Also check if it's on HKGDL to show position
             auto levelId = level->m_levelID.value();
-            HKGDManager::get()->checkLevelOnHKGDL(levelId, [this](bool isOnHKGDL, int position) {
+            bool isPlatformer = m_fields->isPlatformerExtreme;
+            HKGDManager::get()->checkLevelOnHKGDL(levelId, isPlatformer, [this](bool isOnHKGDL, int position) {
                 m_fields->hasCheckedHKGDL = true;
                 m_fields->isOnHKGDL = isOnHKGDL;
                 m_fields->hkgdPosition = position;
