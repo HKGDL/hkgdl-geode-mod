@@ -106,7 +106,11 @@ class $modify(HKGDLevelInfoLayer, LevelInfoLayer) {
         if (!posLabel) return;
         
         if (m_fields->isOnHKGDL) {
-            posLabel->setString(fmt::format("HKGD #{}", m_fields->hkgdPosition).c_str());
+            if (m_fields->isPlatformerExtreme) {
+                posLabel->setString(fmt::format("HKGD #{} (PLAT.)", m_fields->hkgdPosition).c_str());
+            } else {
+                posLabel->setString(fmt::format("HKGD #{}", m_fields->hkgdPosition).c_str());
+            }
             posLabel->setColor({255, 215, 0}); // Gold color
         } else {
             posLabel->setString("Not on HKGDL");

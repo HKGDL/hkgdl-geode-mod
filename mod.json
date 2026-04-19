@@ -8,7 +8,7 @@
 	},
 	"id": "hkgd-community.hkgdl-intergration",
 	"name": "HKGDL-Intergration",
-	"version": "v1.1.0",
+	"version": "v1.1.2",
 	"developer": "HKGD Community",
 	"description": "Shows HKGD Demon List victors when viewing a level.",
 	"dependencies": {
