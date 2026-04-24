@@ -66,7 +66,7 @@ The mod has a configurable API URL setting:
 
 ## License
 
-This project is open source. Feel free to contribute!
+[Dont Be A Dick (DBAD) Public License](DBAD.md)
 
 ## Links
 
